@@ -15,7 +15,7 @@ public:
 };
 
 template <typename T> class BTree {
-  int max_degree;
+  size_t max_degree;
   BTreeNode<T> *root;
 
 public:
@@ -46,13 +46,13 @@ private:
     BTreeNode<T> *new_node = new BTreeNode<T>(child->type);
 
     // move child keys to new node
-    for (int i = max_degree / 2; i < child->keys.size(); i++) {
+    for (size_t i = max_degree / 2 + 1; i < child->keys.size(); i++) {
       new_node->keys.push_back(child->keys[i]);
     }
 
     if (child->type != NodeType::LeafNode) {
       // move the children pointers
-      for (int i = max_degree / 2; i < child->children.size(); i++) {
+      for (size_t i = max_degree / 2 + 1; i < child->children.size(); i++) {
         new_node->children.push_back(child->children[i]);
       }
     }
@@ -89,7 +89,7 @@ private:
     // adjust for index of child
     i++;
 
-    if (node->children.size() == max_degree - 1) {
+    if (node->children[i]->keys.size() == max_degree - 1) {
       // split the child
       split_node(node, i);
 
@@ -108,20 +108,25 @@ private:
       cout << i << " ";
     }
     cout << endl;
-    for (int i = 0; i < root->children.size(); i++) {
+    for (size_t i = 0; i < root->children.size(); i++) {
       traverse(root->children[i]);
     }
   }
 };
 
-int main(int argc, char *argv[]) {
+int main() {
   BTree<int> btree(5);
   btree.insert(10);
   btree.insert(20);
   btree.insert(5);
   btree.insert(6);
+  btree.insert(110);
   btree.insert(12);
   btree.insert(30);
+  btree.insert(60);
+  btree.insert(80);
+  btree.insert(90);
+  btree.insert(100);
 
   btree.display();
   return 0;
