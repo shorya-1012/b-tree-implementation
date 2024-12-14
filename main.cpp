@@ -75,30 +75,43 @@ private:
   }
 
   void insert_not_full(BTreeNode<T> *node, T val) {
-    int i = node->keys.size() - 1;
+    size_t low = 0;
+    size_t high = node->keys.size();
+
     if (node->type == NodeType::LeafNode) {
-      while (i >= 0 && node->keys[i] > val) {
-        i--;
+      while (low < high) {
+        size_t mid = (low + high) / 2;
+        T elm = node->keys[mid];
+        if (val < elm) {
+          high = mid;
+        } else {
+          low = mid + 1;
+        }
       }
-      node->keys.insert(node->keys.begin() + i + 1, val);
+      node->keys.insert(node->keys.begin() + low, val);
       return;
     }
-    // find the child
-    while (i >= 0 && node->keys[i] > val) {
-      i--;
-    }
-    // adjust for index of child
-    i++;
 
-    if (node->children[i]->keys.size() == max_degree - 1) {
-      // split the child
-      split_node(node, i);
-
-      if (node->keys[i] < val) {
-        i++;
+    // find the correct child
+    while (low < high) {
+      size_t mid = (low + high) / 2;
+      T elm = node->keys[mid];
+      if (val < elm) {
+        high = mid;
+      } else {
+        low = mid + 1;
       }
     }
-    insert_not_full(node->children[i], val);
+
+    if (node->children[low]->keys.size() == max_degree - 1) {
+      // split the child
+      split_node(node, low);
+
+      if (node->keys[low] < val) {
+        low++;
+      }
+    }
+    insert_not_full(node->children[low], val);
   }
 
   void traverse(BTreeNode<T> *node) {
@@ -154,7 +167,13 @@ int main() {
   btree.insert(111);
   btree.insert(445);
   btree.insert(3);
+  btree.insert(89);
+  btree.insert(29);
+  btree.insert(61);
+  btree.insert(68);
 
+  btree.display();
+  cout << "\nSearching : " << endl;
   cout << btree.search(1) << endl;
   cout << btree.search(3) << endl;
   cout << btree.search(445) << endl;
