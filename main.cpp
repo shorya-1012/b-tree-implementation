@@ -42,6 +42,8 @@ public:
 
   bool search(T val) { return search_helper(root, val); }
 
+  ~BTree() { delete_helper(root); }
+
 private:
   void split_node(BTreeNode<T> *parent, int index) {
     BTreeNode<T> *child = parent->children[index];
@@ -148,6 +150,15 @@ private:
       return false;
     }
     return search_helper(root->children[low], val);
+  }
+
+  void delete_helper(BTreeNode<T> *node) {
+    if (node == nullptr)
+      return;
+    for (auto child : node->children) {
+      delete_helper(child);
+    }
+    delete node;
   }
 };
 
