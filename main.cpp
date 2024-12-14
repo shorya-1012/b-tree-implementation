@@ -40,19 +40,22 @@ public:
 
   void display() { traverse(root); }
 
+  bool search(T val) { return search_helper(root, val); }
+
 private:
   void split_node(BTreeNode<T> *parent, int index) {
     BTreeNode<T> *child = parent->children[index];
     BTreeNode<T> *new_node = new BTreeNode<T>(child->type);
 
+    size_t mid = max_degree / 2;
     // move child keys to new node
-    for (size_t i = max_degree / 2 + 1; i < child->keys.size(); i++) {
+    for (size_t i = mid + 1; i < child->keys.size(); i++) {
       new_node->keys.push_back(child->keys[i]);
     }
 
     if (child->type != NodeType::LeafNode) {
       // move the children pointers
-      for (size_t i = max_degree / 2 + 1; i < child->children.size(); i++) {
+      for (size_t i = mid + 1; i < child->children.size(); i++) {
         new_node->children.push_back(child->children[i]);
       }
     }
@@ -61,14 +64,12 @@ private:
     parent->children.insert(parent->children.begin() + index + 1, new_node);
 
     // add the middle elm of child to parent
-    parent->keys.insert(parent->keys.begin() + index,
-                        child->keys[max_degree / 2 - 1]);
+    parent->keys.insert(parent->keys.begin() + index, child->keys[mid]);
 
     // clean up the child
-    child->keys.erase(child->keys.begin() + max_degree / 2 - 1,
-                      child->keys.end());
+    child->keys.erase(child->keys.begin() + mid, child->keys.end());
     if (child->type != NodeType::LeafNode) {
-      child->children.erase(child->children.begin() + max_degree / 2 - 1,
+      child->children.erase(child->children.begin() + mid,
                             child->children.end());
     }
   }
@@ -100,17 +101,40 @@ private:
     insert_not_full(node->children[i], val);
   }
 
-  void traverse(BTreeNode<T> *root) {
-    if (root == nullptr)
+  void traverse(BTreeNode<T> *node) {
+    if (node == nullptr)
       return;
 
-    for (const auto &i : root->keys) {
+    for (const auto &i : node->keys) {
       cout << i << " ";
     }
     cout << endl;
-    for (size_t i = 0; i < root->children.size(); i++) {
-      traverse(root->children[i]);
+    for (size_t i = 0; i < node->children.size(); i++) {
+      traverse(node->children[i]);
     }
+  }
+
+  bool search_helper(BTreeNode<T> *root, T val) {
+    if (root == nullptr)
+      return false;
+    size_t low = 0;
+    size_t high = root->keys.size();
+    size_t mid = (low + high) / 2;
+    while (low < high) {
+      mid = (low + high) / 2;
+      if (root->keys[mid] == val) {
+        return true;
+      }
+      if (root->keys[mid] < val) {
+        low = mid + 1;
+      } else {
+        high = mid;
+      }
+    }
+    if (root->type == NodeType::LeafNode) {
+      return false;
+    }
+    return search_helper(root->children[low], val);
   }
 };
 
@@ -127,7 +151,12 @@ int main() {
   btree.insert(80);
   btree.insert(90);
   btree.insert(100);
+  btree.insert(111);
+  btree.insert(445);
+  btree.insert(3);
 
-  btree.display();
+  cout << btree.search(1) << endl;
+  cout << btree.search(3) << endl;
+  cout << btree.search(445) << endl;
   return 0;
 }
